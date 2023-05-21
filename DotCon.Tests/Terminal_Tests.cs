@@ -37,6 +37,7 @@ public class Terminal_Tests
         // Arrange
         var terminal = Terminal.UseBashShell();
 
+        
         // Act
         var result = await terminal.RunAsync("echo 'HelloWorld'");
 

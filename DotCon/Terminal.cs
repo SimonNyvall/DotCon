@@ -5,30 +5,28 @@ namespace DotCon;
 
 public class Terminal
 {
-    private readonly OptionsBuilder _options;
+    private string _shell;
     private readonly Dictionary<string, string[]> _actions = new();
-
-    public Terminal(OptionsBuilder options)
-    {
-        _options = options;
-
-        if (string.IsNullOrEmpty(_options.Shell)) throw new Exception("ShellPath is not configured.");
-    }
+    private static TerminalOptions _terminalOptions = new();
 
     public Terminal(string shell)
     {
-        _options = new OptionsBuilder
-        {
-            Shell = shell
-        };
+        _shell = shell;
     }
 
     /// <summary>
     /// Sets the shell to use bash as the default shell and returns a new instance of Terminal.
     /// </summary>
     /// <returns>Terminal</returns>
-    public static Terminal UseBashShell()
+    public static Terminal UseBashShell(Action<TerminalOptions> configureOptions = null)
     {
+        if (configureOptions != null)
+        {
+            var options = new TerminalOptions();
+            configureOptions(options);   
+            _terminalOptions = options;
+        }
+
         return new Terminal("bash");
     }
     
@@ -36,11 +34,17 @@ public class Terminal
     /// Sets the shell to use cmd as the default shell and returns a new instance of Terminal.
     /// </summary>
     /// <returns>Terminal</returns>
-    public static Terminal UseCmdShell()
+    public static Terminal UseCmdShell(Action<TerminalOptions> configureOptions = null)
     {
+        if (configureOptions != null)
+        {
+            var options = new TerminalOptions();
+            configureOptions(options);
+        }
+        
         return new Terminal("cmd.exe");
     }
-    
+
     /// <summary>
     /// Tries to execute a script action and captures the output or exception message.
     /// </summary>
@@ -196,11 +200,11 @@ public class Terminal
     {
         return new ProcessStartInfo
         {
-            FileName = (string.IsNullOrEmpty(_options.Shell)) ? GetTerminalExecutable() : _options.Shell,
+            FileName = (string.IsNullOrEmpty(_shell)) ? GetTerminalExecutable() : _shell,
             Arguments = GetTerminalArguments(command),
-            RedirectStandardOutput = true,
-            UseShellExecute = false,
-            CreateNoWindow = true
+            RedirectStandardOutput = _terminalOptions.RedirectStandardOutput,
+            UseShellExecute = _terminalOptions.UseShellExecute,
+            CreateNoWindow = _terminalOptions.CreateNoWindow
         };
     }
     
