@@ -7,9 +7,9 @@ public class UnitTest1
     [Fact]
     public async Task Test1()
     {
-        
 
-        var terminal = new Terminal("bash");
+
+        var terminal = Terminal.UseBashShell();
 
         terminal.StoreScript("echo", "echo 'Hello World!'");
         

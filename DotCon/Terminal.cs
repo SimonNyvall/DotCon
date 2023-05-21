@@ -12,15 +12,25 @@ public class Terminal
     {
         _options = options;
 
-        if (string.IsNullOrEmpty(_options.ShellPath)) throw new Exception("ShellPath is not configured.");
+        if (string.IsNullOrEmpty(_options.Shell)) throw new Exception("ShellPath is not configured.");
     }
 
-    public Terminal(string shellPath)
+    public Terminal(string shell)
     {
         _options = new OptionsBuilder
         {
-            ShellPath = shellPath
+            Shell = shell
         };
+    }
+
+    public static Terminal UseBashShell()
+    {
+        return new Terminal("bash");
+    }
+    
+    public static Terminal UseCmdShell()
+    {
+        return new Terminal("cmd.exe");
     }
 
     public bool TryExecuteScript(string action, out string output)
@@ -106,7 +116,7 @@ public class Terminal
     {
         return new ProcessStartInfo
         {
-            FileName = (string.IsNullOrEmpty(_options.ShellPath)) ? GetTerminalExecutable() : _options.ShellPath,
+            FileName = (string.IsNullOrEmpty(_options.Shell)) ? GetTerminalExecutable() : _options.Shell,
             Arguments = GetTerminalArguments(command),
             RedirectStandardOutput = true,
             UseShellExecute = false,
