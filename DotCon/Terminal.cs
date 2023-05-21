@@ -12,22 +12,32 @@ public class Terminal
     {
         _options = options;
 
-        if (string.IsNullOrEmpty(_options.ShellPath)) throw new Exception("ShellPath is not configured.");
+        if (string.IsNullOrEmpty(_options.Shell)) throw new Exception("ShellPath is not configured.");
     }
 
-    public Terminal(string shellPath)
+    public Terminal(string shell)
     {
         _options = new OptionsBuilder
         {
-            ShellPath = shellPath
+            Shell = shell
         };
     }
 
-    public bool TryRun(string action, out string output)
+    public static Terminal UseBashShell()
+    {
+        return new Terminal("bash");
+    }
+    
+    public static Terminal UseCmdShell()
+    {
+        return new Terminal("cmd.exe");
+    }
+
+    public bool TryExecuteScript(string action, out string output)
     {
         try
         {
-            output = Run(action);
+            output = ExecuteScript(action);
             return true;
         }
         catch (Exception exception)
@@ -37,21 +47,42 @@ public class Terminal
         }
     }
     
-    public string Run(string action)
+    public string ExecuteScript(string action)
     {
-        var output = string.Empty;
-        var command = _actions[action][0];
-        var arguments = ParseArgs(_actions[action][1..]);
-        
-        var startInfo = new ProcessStartInfo
-        {
-            FileName = (string.IsNullOrEmpty(_options.ShellPath)) ? GetTerminalExecutable() : _options.ShellPath,
-            Arguments = GetTerminalArguments(command, arguments),
-            RedirectStandardOutput = true,
-            UseShellExecute = false,
-            CreateNoWindow = true
-        };
+        var actions = GetScriptFromKey(action);
 
+        var command = ParseArgs(actions);
+
+        return Run(command);
+    }
+
+    public async Task<string> ExecuteScriptAsync(string action)
+    {
+       var actions = GetScriptFromKey(action);
+       
+       var command = ParseArgs(actions);
+       
+       return await RunAsync(command);
+    }
+
+    public bool TryRun(string command, out string output)
+    {
+        try
+        {
+            output = Run(command);
+            return true;
+        }
+        catch (Exception exception)
+        {
+            output = exception.Message;
+            return false;
+        }
+    }
+
+    public string Run(string command)
+    {
+        var startInfo = GetProcessStartInfo(command);
+        
         using var process = Process.Start(startInfo)!;
         var outputBuilder = new StringBuilder();
         while (!process.StandardOutput.EndOfStream)
@@ -59,27 +90,15 @@ public class Terminal
             var line = process.StandardOutput.ReadLine()!;
             outputBuilder.AppendLine(line);
         }
-        output = outputBuilder.ToString();
+        var output = outputBuilder.ToString();
 
         return output;
     }
 
-    public async Task<string> RunAsync(string action)
+    public async Task<string> RunAsync(string command)
     {
-        var output = string.Empty;
-        var command = _actions[action][0];
-        var arguments = ParseArgs(_actions[action][1..]);
-
-
-        var startInfo = new ProcessStartInfo
-        {
-            FileName = GetTerminalExecutable(),
-            Arguments = GetTerminalArguments(command, arguments),
-            RedirectStandardOutput = true,
-            UseShellExecute = false,
-            CreateNoWindow = true
-        };
-
+        var startInfo = GetProcessStartInfo(command);
+    
         using var process = Process.Start(startInfo);
         var outputBuilder = new StringBuilder();
         while (process is { StandardOutput.EndOfStream: false })
@@ -88,11 +107,23 @@ public class Terminal
             outputBuilder.AppendLine(line);
         }
         
-        output = outputBuilder.ToString();
-
+        var output = outputBuilder.ToString();
+    
         return output;
     }
-
+    
+    private ProcessStartInfo GetProcessStartInfo(string command)
+    {
+        return new ProcessStartInfo
+        {
+            FileName = (string.IsNullOrEmpty(_options.Shell)) ? GetTerminalExecutable() : _options.Shell,
+            Arguments = GetTerminalArguments(command),
+            RedirectStandardOutput = true,
+            UseShellExecute = false,
+            CreateNoWindow = true
+        };
+    }
+    
     private static string ParseArgs(IEnumerable<string> actions)
     {
         var argsBuilder = new StringBuilder();
@@ -100,7 +131,7 @@ public class Terminal
         foreach (var action in actions)
         {
             argsBuilder.Append(action);
-            argsBuilder.Append(' ');
+            argsBuilder.Append(" && ");
         }
 
         return argsBuilder.ToString();
@@ -110,7 +141,16 @@ public class Terminal
         return (Environment.OSVersion.Platform == PlatformID.Win32NT) ? "cmd.exe" : "bash";
     }
 
-    private string GetTerminalArguments(string command, string arguments)
+    private string[] GetScriptFromKey(string key)
+    {
+        if (!_actions.ContainsKey(key)) throw new Exception("Script not found.");
+        
+        var script = _actions[key];
+
+        return script;
+    }
+    
+    private string GetTerminalArguments(string command, string arguments = "")
     {
         return (Environment.OSVersion.Platform == PlatformID.Win32NT) 
             ? "/c " + command + " " + arguments 
