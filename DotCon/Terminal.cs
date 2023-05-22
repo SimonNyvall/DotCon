@@ -14,9 +14,11 @@ public class Terminal : ScriptManager
     }
 
     /// <summary>
-    /// Sets the shell to use bash as the default shell and returns a new instance of Terminal.
+    /// Creates and configures a new instance of the Terminal class using the Bash shell.
     /// </summary>
-    /// <returns>Terminal</returns>
+    /// <param name="configureOptions">An optional action to configure the TerminalOptions.</param>
+    /// <returns>A new Terminal instance configured for the Bash shell.</returns>
+
     public static Terminal UseBashShell(Action<TerminalOptions>? configureOptions = null)
     {
         ConfigureOptions(configureOptions);
@@ -25,9 +27,10 @@ public class Terminal : ScriptManager
     }
 
     /// <summary>
-    /// Sets the shell to use cmd as the default shell and returns a new instance of Terminal.
+    /// Creates and configures a new instance of the Terminal class using the Command Prompt (CMD) shell.
     /// </summary>
-    /// <returns>Terminal</returns>
+    /// <param name="configureOptions">An optional action to configure the TerminalOptions.</param>
+    /// <returns>A new Terminal instance configured for the Command Prompt (CMD) shell.</returns>
     public static Terminal UseCmdShell(Action<TerminalOptions>? configureOptions = null)
     {
         ConfigureOptions(configureOptions);
