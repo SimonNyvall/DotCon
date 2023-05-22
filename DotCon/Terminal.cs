@@ -3,36 +3,56 @@ using System.Text;
 
 namespace DotCon;
 
-public class Terminal
+public class Terminal : ScriptManager
 {
-    private readonly OptionsBuilder _options;
-    private readonly Dictionary<string, string[]> _actions = new();
-
-    public Terminal(OptionsBuilder options)
-    {
-        _options = options;
-
-        if (string.IsNullOrEmpty(_options.Shell)) throw new Exception("ShellPath is not configured.");
-    }
+    private string _shell;
+    private static TerminalOptions _terminalOptions = new();
 
     public Terminal(string shell)
     {
-        _options = new OptionsBuilder
-        {
-            Shell = shell
-        };
+        _shell = shell;
     }
 
-    public static Terminal UseBashShell()
+    /// <summary>
+    /// Creates and configures a new instance of the Terminal class using the Bash shell.
+    /// </summary>
+    /// <param name="configureOptions">An optional action to configure the TerminalOptions.</param>
+    /// <returns>A new Terminal instance configured for the Bash shell.</returns>
+
+    public static Terminal UseBashShell(Action<TerminalOptions>? configureOptions = null)
     {
+        ConfigureOptions(configureOptions);
+
         return new Terminal("bash");
     }
-    
-    public static Terminal UseCmdShell()
+
+    /// <summary>
+    /// Creates and configures a new instance of the Terminal class using the Command Prompt (CMD) shell.
+    /// </summary>
+    /// <param name="configureOptions">An optional action to configure the TerminalOptions.</param>
+    /// <returns>A new Terminal instance configured for the Command Prompt (CMD) shell.</returns>
+    public static Terminal UseCmdShell(Action<TerminalOptions>? configureOptions = null)
     {
+        ConfigureOptions(configureOptions);
+        
         return new Terminal("cmd.exe");
     }
 
+    private static void ConfigureOptions(Action<TerminalOptions>? configureOptions)
+    {
+        if (configureOptions == null) return;
+        
+        var options = new TerminalOptions();
+        configureOptions(options);
+        _terminalOptions = options;
+    }
+    
+    /// <summary>
+    /// Tries to execute a script action and captures the output or exception message.
+    /// </summary>
+    /// <param name="action">The script action to execute.</param>
+    /// <param name="output">The output of the executed script action or the exception message if an error occurs.</param>
+    /// <returns>True if the script action executed successfully; otherwise, false.</returns>
     public bool TryExecuteScript(string action, out string output)
     {
         try
@@ -47,6 +67,11 @@ public class Terminal
         }
     }
     
+    /// <summary>
+    /// Executes a script by retrieving the corresponding actions, parsing the arguments, and running the resulting command.
+    /// </summary>
+    /// <param name="action">The script action or key representing the script to execute.</param>
+    /// <returns>The output of the executed script.</returns>
     public string ExecuteScript(string action)
     {
         var actions = GetScriptFromKey(action);
@@ -56,6 +81,11 @@ public class Terminal
         return Run(command);
     }
 
+    /// <summary>
+    /// Executes a script asynchronously by retrieving the corresponding actions, parsing the arguments, and running the resulting command.
+    /// </summary>
+    /// <param name="action">The script action or key representing the script to execute.</param>
+    /// <returns>A task representing the asynchronous operation, returning the output of the executed script.</returns>
     public async Task<string> ExecuteScriptAsync(string action)
     {
        var actions = GetScriptFromKey(action);
@@ -65,6 +95,12 @@ public class Terminal
        return await RunAsync(command);
     }
 
+    /// <summary>
+    /// Tries to run a shell command and captures the output or exception message.
+    /// </summary>
+    /// <param name="command">The shell command to run.</param>
+    /// <param name="output">The output of the executed command or the exception message if an error occurs.</param>
+    /// <returns>True if the command executed successfully; otherwise, false.</returns>
     public bool TryRun(string command, out string output)
     {
         try
@@ -79,6 +115,11 @@ public class Terminal
         }
     }
 
+    /// <summary>
+    /// Executes a shell command synchronously and captures the output.
+    /// </summary>
+    /// <param name="command">The shell command to execute.</param>
+    /// <returns>The output of the executed command.</returns>
     public string Run(string command)
     {
         var startInfo = GetProcessStartInfo(command);
@@ -95,42 +136,90 @@ public class Terminal
         return output;
     }
 
+    /// <summary>
+    /// Executes a shell command asynchronously and captures the output.
+    /// </summary>
+    /// <param name="command">The shell command to execute.</param>
+    /// <returns>A task representing the asynchronous operation, returning the output of the executed command.</returns>
     public async Task<string> RunAsync(string command)
     {
         var startInfo = GetProcessStartInfo(command);
     
         using var process = Process.Start(startInfo);
         var outputBuilder = new StringBuilder();
-        while (process is { StandardOutput.EndOfStream: false })
-        {
-            var line = await process.StandardOutput.ReadLineAsync() ?? string.Empty;
-            outputBuilder.AppendLine(line);
-        }
         
+        var readOutputTask = ReadOutputAsync(process, outputBuilder);
+        await readOutputTask;
+
         var output = outputBuilder.ToString();
     
         return output;
     }
     
+    /// <summary>
+    /// Executes a shell command asynchronously with a specified timeout and captures the output.
+    /// </summary>
+    /// <param name="command">The shell command to execute.</param>
+    /// <param name="timeout">The maximum duration to wait for the command to complete.</param>
+    /// <returns>A task representing the asynchronous operation, returning the output of the executed command.</returns>
+    /// <exception cref="TimeoutException">Thrown when the command execution exceeds the specified timeout.</exception>
+    public async Task<string> RunAsync(string command, TimeSpan timeout)
+    {
+        var startInfo = GetProcessStartInfo(command);
+
+        using var process = Process.Start(startInfo);
+        var outputBuilder = new StringBuilder();
+
+        var readOutputTask = ReadOutputAsync(process, outputBuilder);
+        var completedTask = await Task.WhenAny(readOutputTask, Task.Delay(timeout));
+
+        if (completedTask == readOutputTask)
+        {
+            await readOutputTask;
+        }
+        else
+        {
+            process.Kill();
+            throw new TimeoutException("Command execution timed out.");
+        }
+
+        var output = outputBuilder.ToString();
+
+        return output;
+    }
+
+    private async Task ReadOutputAsync(Process process, StringBuilder outputBuilder)
+    {
+        while (process is { StandardOutput.EndOfStream: false })
+        {
+            var line = await process.StandardOutput.ReadLineAsync() ?? string.Empty;
+            outputBuilder.AppendLine(line);
+        }
+    }
+
+    
     private ProcessStartInfo GetProcessStartInfo(string command)
     {
         return new ProcessStartInfo
         {
-            FileName = (string.IsNullOrEmpty(_options.Shell)) ? GetTerminalExecutable() : _options.Shell,
+            FileName = (string.IsNullOrEmpty(_shell)) ? GetTerminalExecutable() : _shell,
             Arguments = GetTerminalArguments(command),
-            RedirectStandardOutput = true,
-            UseShellExecute = false,
-            CreateNoWindow = true
+            RedirectStandardOutput = _terminalOptions.RedirectStandardOutput,
+            UseShellExecute = _terminalOptions.UseShellExecute,
+            CreateNoWindow = _terminalOptions.CreateNoWindow
         };
     }
     
     private static string ParseArgs(IEnumerable<string> actions)
     {
         var argsBuilder = new StringBuilder();
-
+        
         foreach (var action in actions)
         {
             argsBuilder.Append(action);
+            
+            if (action == actions.Last()) continue;
+            
             argsBuilder.Append(" && ");
         }
 
@@ -156,41 +245,4 @@ public class Terminal
             ? "/c " + command + " " + arguments 
             : "-c \"" + command + " " + arguments + "\"";
     }
-
-    public void StoreScript(string key, List<string> actions)
-    {
-        StoreScript(key, actions.ToArray());
-    }
-    
-    public void StoreScript(string key, params string[] actions)
-    {
-        _actions.Add(key, actions);
-    }
-    
-    public KeyValuePair<string, string[]>[] GetScripts()
-    {
-        return _actions.ToArray();
-    }
-    
-    public void RemoveScript(string key)
-    {
-        _actions.Remove(key);
-    }
-    
-    public void ClearScripts()
-    {
-        _actions.Clear();
-    }
-    
-    public void UpdateScript(string key, List<string> actions)
-    {
-        UpdateScript(key, actions.ToArray());
-    }
-    
-    public void UpdateScript(string key, params string[] actions)
-    {
-        _actions[key] = actions;
-    }
-
-    
 }
