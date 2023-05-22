@@ -213,10 +213,13 @@ public class Terminal : ScriptManager
     private static string ParseArgs(IEnumerable<string> actions)
     {
         var argsBuilder = new StringBuilder();
-
+        
         foreach (var action in actions)
         {
             argsBuilder.Append(action);
+            
+            if (action == actions.Last()) continue;
+            
             argsBuilder.Append(" && ");
         }
 
