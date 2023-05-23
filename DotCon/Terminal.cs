@@ -37,6 +37,33 @@ public class Terminal : ScriptManager
         
         return new Terminal("cmd.exe");
     }
+    
+    /// <summary>
+    /// Creates and configures a new instance of the Terminal class using Powershell.
+    /// </summary>
+    /// <param name="configureOptions">An optional action to configure the TerminalOptions.</param>
+    /// <returns>A new Terminal instance configured for Powershell.</returns>
+    public static Terminal UsePowerShell(Action<TerminalOptions>? configureOptions = null)
+    {
+        ConfigureOptions(configureOptions);
+        
+        if (Environment.OSVersion.Platform == PlatformID.Win32NT)
+            return new Terminal("powershell.exe");
+        
+        return new Terminal("powershell");
+    }
+    
+    /// <summary>
+    /// Creates and configures a new instance of the Terminal class using the Zsh shell.
+    /// </summary>
+    /// <param name="configureOptions">An optional action to configure the TerminalOptions.</param>
+    /// <returns>A new Terminal instance configured for the Zsh shell.</returns>
+    public static Terminal UseZshShell(Action<TerminalOptions>? configureOptions = null)
+    {
+        ConfigureOptions(configureOptions);
+        
+        return new Terminal("zsh");
+    }
 
     private static void ConfigureOptions(Action<TerminalOptions>? configureOptions)
     {
