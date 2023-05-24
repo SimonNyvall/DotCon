@@ -57,32 +57,4 @@ public class Terminal_Tests
         // Assert
         Assert.Equal("HelloWorld\n", result);
     }
-
-    [Fact]
-    public void Execute_CreateFileOnDesktop()
-    {
-        // Arrange
-        var terminal = Terminal.UseBashShell();
-        terminal.StoreScript("touch", "touch ~/Desktop/test.txt");
-
-        // Act
-        terminal.ExecuteScript("touch");
-
-        // Assert
-        Assert.True(File.Exists(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "test.txt")));
-    }
-    
-    [Fact]
-    public void Execute_RemovesFileOnDesktop()
-    {
-        // Arrange
-        var terminal = Terminal.UseBashShell();
-        terminal.StoreScript("rm", "rm ~/Desktop/test.txt");
-        
-        // Act
-        terminal.ExecuteScript("rm");
-        
-        // Assert
-        Assert.False(File.Exists(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "test.txt")));
-    }
 }

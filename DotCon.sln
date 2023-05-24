@@ -4,6 +4,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DotCon", "DotCon\DotCon.csp
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DotCon.Tests", "DotCon.Tests\DotCon.Tests.csproj", "{6870B30C-DEE6-4C2C-B437-7F50C631982D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DotConConsole", "DotConConsole\DotConConsole.csproj", "{31D571B3-8350-4EB4-8AAA-003A698458CF}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -18,5 +20,9 @@ Global
 		{6870B30C-DEE6-4C2C-B437-7F50C631982D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6870B30C-DEE6-4C2C-B437-7F50C631982D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6870B30C-DEE6-4C2C-B437-7F50C631982D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{31D571B3-8350-4EB4-8AAA-003A698458CF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{31D571B3-8350-4EB4-8AAA-003A698458CF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{31D571B3-8350-4EB4-8AAA-003A698458CF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{31D571B3-8350-4EB4-8AAA-003A698458CF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
