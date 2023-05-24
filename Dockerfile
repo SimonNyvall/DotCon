@@ -5,15 +5,15 @@ FROM mcr.microsoft.com/dotnet/sdk:7.0 AS build
 WORKDIR /src
 
 # Copy the .csproj file(s) and restore the NuGet packages
-COPY DotCon/DotCon.csproj .
+COPY DotConConsole/DotConConsole.csproj .
 
-RUN dotnet restore "DotCon.csproj"
+RUN dotnet restore "DotConConsole.csproj"
 
 # Copy the entire project directory to the container
 COPY . .
 
 # Publish the application
-RUN dotnet publish "DotCon/DotCon.csproj" -c Release -o /publish
+RUN dotnet publish "DotConConsole/DotConConsole.csproj" -c Release -o /publish
 
 # Create a new image with the runtime environment
 FROM mcr.microsoft.com/dotnet/aspnet:7.0 AS final
@@ -25,4 +25,4 @@ WORKDIR /app
 COPY --from=build /publish .
 
 # Set the entry point for the container
-ENTRYPOINT ["dotnet", "DotCon.dll"]
+ENTRYPOINT ["dotnet", "DotConConsole.dll"]
