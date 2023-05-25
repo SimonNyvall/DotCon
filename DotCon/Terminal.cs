@@ -171,8 +171,8 @@ public class Terminal : ScriptManager
     public async Task<string> RunAsync(string command)
     {
         var startInfo = GetProcessStartInfo(command);
-    
-        using var process = Process.Start(startInfo);
+
+        using var process = Process.Start(startInfo) ?? throw new InvalidOperationException("Failed to start process.");
         var outputBuilder = new StringBuilder();
         
         var readOutputTask = ReadOutputAsync(process, outputBuilder);
@@ -194,7 +194,7 @@ public class Terminal : ScriptManager
     {
         var startInfo = GetProcessStartInfo(command);
 
-        using var process = Process.Start(startInfo);
+        using var process = Process.Start(startInfo) ?? throw new InvalidOperationException("Failed to start process.");
         var outputBuilder = new StringBuilder();
 
         var readOutputTask = ReadOutputAsync(process, outputBuilder);

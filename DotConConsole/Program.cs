@@ -19,7 +19,7 @@ while (!validInput)
 {
     Console.Write("[0] Exit\n[1] Run a command\n[2] Show a basic command\n");
     Console.Write("Enter a number: ");
-    userInput = Console.ReadLine();
+    userInput = Console.ReadLine() ?? string.Empty;
 
     if (userInput == string.Empty || !validUserInputs.Contains(userInput))
     {
@@ -40,7 +40,7 @@ if (userInput == "1")
 {
     Console.WriteLine("Please enter a command you would like to run. . .\n");
     Console.Write("Enter a command: ");
-    userInput = Console.ReadLine();
+    userInput = Console.ReadLine() ?? string.Empty;
     
     var terminal = Terminal.UseBashShell();
     var result = terminal.Run(userInput);
