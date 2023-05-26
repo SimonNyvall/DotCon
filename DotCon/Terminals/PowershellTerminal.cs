@@ -1,23 +1,23 @@
+using DotCon.Models;
+
 namespace DotCon.Terminals;
 
 public class PowershellTerminal : Terminal
 {
-    public PowershellTerminal() : base("powershell")
-    {
-    }
+    public PowershellTerminal() : base(Shell.powershell) {}
 
     protected override string GetTerminalExecutable()
     {
-        throw new NotImplementedException();
+        return Shell.powershell.ToString();
     }
 
     protected override string GetTerminalArguments(string command)
     {
-        throw new NotImplementedException();
+        return $"-c \"{command}\"";
     }
 
     protected override string GetTerminalArguments(string command, string arguments)
     {
-        throw new NotImplementedException();
+        return $"-c \"{command}\" {arguments}";
     }
 }

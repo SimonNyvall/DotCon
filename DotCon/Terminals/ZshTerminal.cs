@@ -1,23 +1,23 @@
+using DotCon.Models;
+
 namespace DotCon.Terminals;
 
 public class ZshTerminal : Terminal
 {
-    public ZshTerminal() : base("zsh")
-    {
-    }
+    public ZshTerminal() : base(Shell.zsh) {}
 
     protected override string GetTerminalExecutable()
     {
-        throw new NotImplementedException();
+        return Shell.zsh.ToString();
     }
 
     protected override string GetTerminalArguments(string command)
     {
-        throw new NotImplementedException();
+        return $"-c \"{command}\"";
     }
 
     protected override string GetTerminalArguments(string command, string arguments)
     {
-        throw new NotImplementedException();
+        return $"-c \"{command}\" {arguments}";
     }
 }

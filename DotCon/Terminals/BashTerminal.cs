@@ -1,23 +1,23 @@
+using DotCon.Models;
+
 namespace DotCon.Terminals;
 
 public class BashTerminal : Terminal
 {
-    public BashTerminal() : base("bash")
-    {
-    }
+    public BashTerminal() : base(Shell.bash) {}
 
     protected override string GetTerminalExecutable()
     {
-        throw new NotImplementedException();
+        return Shell.bash.ToString();
     }
 
     protected override string GetTerminalArguments(string command)
     {
-        throw new NotImplementedException();
+        return $"-c \"{command}\"";
     }
 
     protected override string GetTerminalArguments(string command, string arguments)
     {
-        throw new NotImplementedException();
+        return $"-c \"{command}\" {arguments}";
     }
 }

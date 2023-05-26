@@ -1,23 +1,23 @@
+using DotCon.Models;
+
 namespace DotCon.Terminals;
 
 public class CmdTerminal : Terminal
 {
-    public CmdTerminal() : base("cmd")
-    {
-    }
+    public CmdTerminal() : base(Shell.cmd) {}
 
     protected override string GetTerminalExecutable()
     {
-        throw new NotImplementedException();
+        return Shell.cmd.ToString();
     }
 
     protected override string GetTerminalArguments(string command)
     {
-        throw new NotImplementedException();
+        return "/c \"" + command + "\" ";
     }
 
     protected override string GetTerminalArguments(string command, string arguments)
     {
-        throw new NotImplementedException();
+        return "/c \"" + command + "\" " + arguments;
     }
 }

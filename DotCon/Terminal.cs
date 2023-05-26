@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using System.Text;
+using DotCon.Models;
 using DotCon.Terminals;
 
 namespace DotCon;
@@ -7,9 +8,9 @@ namespace DotCon;
 public abstract class Terminal : ScriptManager
 {
     private static TerminalOptions _terminalOptions = new();
-    private string Shell { get; }
+    private Shell Shell { get; }
     
-    protected Terminal(string shell)
+    protected Terminal(Shell shell)
     {
         Shell = shell;
     }
@@ -41,20 +42,20 @@ public abstract class Terminal : ScriptManager
     protected abstract string GetTerminalArguments(string command);
     
     protected abstract string GetTerminalArguments(string command, string arguments);
-    
-    protected ProcessStartInfo GetProcessStartInfo(string command)
+
+    private ProcessStartInfo GetProcessStartInfo(string command)
     {
         return new ProcessStartInfo
         {
-            FileName = string.IsNullOrEmpty(Shell) ? GetTerminalExecutable() : Shell,
+            FileName = string.IsNullOrEmpty(Shell.ToString()) ? GetTerminalExecutable() : Shell.ToString(),
             Arguments = GetTerminalArguments(command),
             RedirectStandardOutput = _terminalOptions.RedirectStandardOutput,
             UseShellExecute = _terminalOptions.UseShellExecute,
             CreateNoWindow = _terminalOptions.CreateNoWindow
         };
     }
-    
-    protected async Task ReadOutputAsync(Process process, StringBuilder outputBuilder)
+
+    private static async Task ReadOutputAsync(Process process, StringBuilder outputBuilder)
     {
         while (!process.StandardOutput.EndOfStream)
         {
@@ -212,17 +213,18 @@ public abstract class Terminal : ScriptManager
 
         return script;
     }
-    
-    
+
     protected static string ParseArgs(IEnumerable<string> actions)
     {
+        var actionsArray = actions.ToArray();
+        
         var argsBuilder = new StringBuilder();
 
-        foreach (var action in actions)
+        foreach (var action in actionsArray)
         {
             argsBuilder.Append(action);
 
-            if (action == actions.Last())
+            if (action == actionsArray.Last())
                 continue;
 
             argsBuilder.Append(" && ");
