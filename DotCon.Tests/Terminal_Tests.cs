@@ -1,4 +1,5 @@
 using DotCon.Models;
+using DotCon.Terminals;
 
 namespace DotCon.Tests;
 
@@ -7,12 +8,13 @@ public class Terminal_Tests
     [Fact]
     public void Test1()
     {
-        var terminal = Terminal.CreateTerminal("bash");
+        // Arrange
+        var bash = Terminal.UseBashShell();
         
-        terminal.StoreScript("echo", "echo 'hello world'");
-
-        var result = terminal.Run("echo 'hello world'");
-
-        Console.WriteLine(result);
+        // Act
+        var result = bash.Run("echo 'Hello World!'");
+        
+        // Assert
+        Assert.Equal("Hello World!\n", result);
     }
 }

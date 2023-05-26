@@ -14,19 +14,29 @@ public abstract class Terminal : ScriptManager
     {
         Shell = shell;
     }
-    
-    public static Terminal CreateTerminal(string shell, Action<TerminalOptions>? configureOptions = null)
+
+    public static Terminal UseBashShell(Action<TerminalOptions>? configureOptions = null)
     {
         ConfigureOptions(configureOptions);
-
-        return shell.ToLower() switch
-        {
-            "bash" => new BashTerminal(),
-            "cmd" => new CmdTerminal(),
-            "powershell" => new PowershellTerminal(),
-            "zsh" => new ZshTerminal(),
-            _ => throw new ArgumentException("Invalid shell specified.")
-        };
+        return new BashTerminal();
+    }
+    
+    public static Terminal UseCmdShell(Action<TerminalOptions>? configureOptions = null)
+    {
+        ConfigureOptions(configureOptions);
+        return new CmdTerminal();
+    }
+    
+    public static Terminal UsePowershellShell(Action<TerminalOptions>? configureOptions = null)
+    {
+        ConfigureOptions(configureOptions);
+        return new PowershellTerminal();
+    }
+    
+    public static Terminal UseZshShell(Action<TerminalOptions>? configureOptions = null)
+    {
+        ConfigureOptions(configureOptions);
+        return new ZshTerminal();
     }
     
     private static void ConfigureOptions(Action<TerminalOptions>? configureOptions)
