@@ -5,7 +5,7 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <Title>DotCon. Access the terminal within C#.</Title>
-        <PackageIcon>terminal2.png</PackageIcon>
+        <PackageIcon>terminal.png</PackageIcon>
         <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     </PropertyGroup>
 
@@ -22,7 +22,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <None Update="terminal2.png">
+      <None Update="Images\terminal.png">
         <Pack>True</Pack>
         <PackagePath></PackagePath>
       </None>
