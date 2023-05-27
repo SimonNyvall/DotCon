@@ -1,32 +1,30 @@
-﻿
-
+﻿using System.Threading.Channels;
 using DotCon;
 
 Console.WriteLine("Hello and welcome to DotCon!\n");
 
-Console.WriteLine("DotCon is a simple library that allows you to run commands in a terminal.");
-Console.WriteLine("It is cross-platform and supports Windows, Linux and macOS.");
-Console.WriteLine("It is also open-source and available on GitHub.\n");
+Console.WriteLine("""
+DotCon is a lightweight library that provides a simple and consistent interface for executing shell commands in various terminal environments. 
+It follows the Factory Method design pattern to create terminal instances based on different shells (Bash, Cmd, PowerShell, Zsh).
+""");
 
-Console.WriteLine("This is a simple example of how to use DotCon.");
 
 string userInput = string.Empty;
 string[] validUserInputs = { "0", "1", "2" };
 bool validInput = false;
-
 Console.WriteLine("Please enter a action you would like to do. . .\n");
 while (!validInput)
 {
     Console.Write("[0] Exit\n[1] Run a command\n[2] Show a basic command\n");
     Console.Write("Enter a number: ");
-    userInput = Console.ReadLine();
+    userInput = Console.ReadLine() ?? string.Empty;
 
     if (userInput == string.Empty || !validUserInputs.Contains(userInput))
     {
         Console.WriteLine("Invalid input. Please try again.\n");
         continue;
     }
-    
+
     validInput = true;
 }
 
@@ -40,11 +38,11 @@ if (userInput == "1")
 {
     Console.WriteLine("Please enter a command you would like to run. . .\n");
     Console.Write("Enter a command: ");
-    userInput = Console.ReadLine();
-    
+    userInput = Console.ReadLine() ?? string.Empty;
+
     var terminal = Terminal.UseBashShell();
     var result = terminal.Run(userInput);
-    
+
     Console.WriteLine($"\nResult: {result}");
     return;
 }

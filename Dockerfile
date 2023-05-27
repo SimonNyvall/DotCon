@@ -1,28 +1,19 @@
-# Use the appropriate base image for building .NET applications on Linux
-FROM mcr.microsoft.com/dotnet/sdk:7.0 AS build
-
-# Set the working directory inside the container
-WORKDIR /src
-
-# Copy the .csproj file(s) and restore the NuGet packages
-COPY DotConConsole/DotConConsole.csproj .
-
-RUN dotnet restore "DotConConsole.csproj"
-
-# Copy the entire project directory to the container
-COPY . .
-
-# Publish the application
-RUN dotnet publish "DotConConsole/DotConConsole.csproj" -c Release -o /publish
-
-# Create a new image with the runtime environment
-FROM mcr.microsoft.com/dotnet/aspnet:7.0 AS final
-
-# Set the working directory inside the container
+﻿FROM mcr.microsoft.com/dotnet/runtime:7.0 AS base
 WORKDIR /app
 
-# Copy the published output from the previous stage
-COPY --from=build /publish .
+FROM mcr.microsoft.com/dotnet/sdk:7.0 AS build
+WORKDIR /src
+COPY ["DotCon.Console/DotCon.Console.csproj", "DotCon.Console/"]
+COPY ["DotCon/DotCon.csproj", "DotCon/"]
+RUN dotnet restore "DotCon.Console/DotCon.Console.csproj"
+COPY . .
+WORKDIR "/src/DotCon.Console"
+RUN dotnet build "DotCon.Console.csproj" -c Release -o /app/build
 
-# Set the entry point for the container
-ENTRYPOINT ["dotnet", "DotConConsole.dll"]
+FROM build AS publish
+RUN dotnet publish "DotCon.Console.csproj" -c Release -o /app/publish /p:UseAppHost=false
+
+FROM base AS final
+WORKDIR /app
+COPY --from=publish /app/publish .
+ENTRYPOINT ["dotnet", "DotCon.Console.dll"]

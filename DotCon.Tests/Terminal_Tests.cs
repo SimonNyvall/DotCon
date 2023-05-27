@@ -1,4 +1,5 @@
 using DotCon.Models;
+using DotCon.Terminals;
 
 namespace DotCon.Tests;
 

@@ -1,77 +1,77 @@
 ﻿using System.Diagnostics;
 using System.Text;
+using DotCon.Models;
+using DotCon.Terminals;
 
 namespace DotCon;
 
-public class Terminal : ScriptManager
+public abstract class Terminal : ScriptManager
 {
-    private string _shell;
     private static TerminalOptions _terminalOptions = new();
-
-    public Terminal(string shell)
+    private Shell Shell { get; }
+    
+    protected Terminal(Shell shell)
     {
-        _shell = shell;
+        Shell = shell;
     }
-
-    /// <summary>
-    /// Creates and configures a new instance of the Terminal class using the Bash shell.
-    /// </summary>
-    /// <param name="configureOptions">An optional action to configure the TerminalOptions.</param>
-    /// <returns>A new Terminal instance configured for the Bash shell.</returns>
 
     public static Terminal UseBashShell(Action<TerminalOptions>? configureOptions = null)
     {
         ConfigureOptions(configureOptions);
-
-        return new Terminal("bash");
+        return new BashTerminal();
     }
-
-    /// <summary>
-    /// Creates and configures a new instance of the Terminal class using the Command Prompt (CMD) shell.
-    /// </summary>
-    /// <param name="configureOptions">An optional action to configure the TerminalOptions.</param>
-    /// <returns>A new Terminal instance configured for the Command Prompt (CMD) shell.</returns>
+    
     public static Terminal UseCmdShell(Action<TerminalOptions>? configureOptions = null)
     {
         ConfigureOptions(configureOptions);
-        
-        return new Terminal("cmd.exe");
+        return new CmdTerminal();
     }
     
-    /// <summary>
-    /// Creates and configures a new instance of the Terminal class using Powershell.
-    /// </summary>
-    /// <param name="configureOptions">An optional action to configure the TerminalOptions.</param>
-    /// <returns>A new Terminal instance configured for Powershell.</returns>
-    public static Terminal UsePowerShell(Action<TerminalOptions>? configureOptions = null)
+    public static Terminal UsePowershellShell(Action<TerminalOptions>? configureOptions = null)
     {
         ConfigureOptions(configureOptions);
-        
-        if (Environment.OSVersion.Platform == PlatformID.Win32NT)
-            return new Terminal("powershell.exe");
-        
-        return new Terminal("powershell");
+        return new PowershellTerminal();
     }
     
-    /// <summary>
-    /// Creates and configures a new instance of the Terminal class using the Zsh shell.
-    /// </summary>
-    /// <param name="configureOptions">An optional action to configure the TerminalOptions.</param>
-    /// <returns>A new Terminal instance configured for the Zsh shell.</returns>
     public static Terminal UseZshShell(Action<TerminalOptions>? configureOptions = null)
     {
         ConfigureOptions(configureOptions);
-        
-        return new Terminal("zsh");
+        return new ZshTerminal();
     }
-
+    
     private static void ConfigureOptions(Action<TerminalOptions>? configureOptions)
     {
         if (configureOptions == null) return;
-        
+
         var options = new TerminalOptions();
         configureOptions(options);
         _terminalOptions = options;
+    }
+    
+    protected abstract string GetTerminalExecutable();
+    protected abstract string GetTerminalArguments(string command);
+    
+    protected abstract string GetTerminalArguments(string command, string arguments);
+
+    private ProcessStartInfo GetProcessStartInfo(string command)
+    {
+        return new ProcessStartInfo
+        {
+            FileName = string.IsNullOrEmpty(Shell.ToString()) ? GetTerminalExecutable() : Shell.ToString(),
+            Arguments = GetTerminalArguments(command),
+            RedirectStandardOutput = _terminalOptions.RedirectStandardOutput,
+            UseShellExecute = _terminalOptions.UseShellExecute,
+            CreateNoWindow = _terminalOptions.CreateNoWindow
+        };
+    }
+
+    private static async Task ReadOutputAsync(Process process, StringBuilder outputBuilder)
+    {
+        while (!process.StandardOutput.EndOfStream)
+        {
+            var line = await process.StandardOutput.ReadLineAsync() ?? string.Empty;
+            outputBuilder.AppendLine(line);
+        }
     }
     
     /// <summary>
@@ -171,8 +171,8 @@ public class Terminal : ScriptManager
     public async Task<string> RunAsync(string command)
     {
         var startInfo = GetProcessStartInfo(command);
-    
-        using var process = Process.Start(startInfo);
+
+        using var process = Process.Start(startInfo) ?? throw new InvalidOperationException("Failed to start process.");
         var outputBuilder = new StringBuilder();
         
         var readOutputTask = ReadOutputAsync(process, outputBuilder);
@@ -194,7 +194,7 @@ public class Terminal : ScriptManager
     {
         var startInfo = GetProcessStartInfo(command);
 
-        using var process = Process.Start(startInfo);
+        using var process = Process.Start(startInfo) ?? throw new InvalidOperationException("Failed to start process.");
         var outputBuilder = new StringBuilder();
 
         var readOutputTask = ReadOutputAsync(process, outputBuilder);
@@ -214,62 +214,32 @@ public class Terminal : ScriptManager
 
         return output;
     }
+    protected string[] GetScriptFromKey(string key)
+    {
+        if (!_actions.ContainsKey(key))
+            throw new Exception("Script not found.");
 
-    private async Task ReadOutputAsync(Process process, StringBuilder outputBuilder)
-    {
-        while (process is { StandardOutput.EndOfStream: false })
-        {
-            var line = await process.StandardOutput.ReadLineAsync() ?? string.Empty;
-            outputBuilder.AppendLine(line);
-        }
-    }
-
-    
-    private ProcessStartInfo GetProcessStartInfo(string command)
-    {
-        return new ProcessStartInfo
-        {
-            FileName = (string.IsNullOrEmpty(_shell)) ? GetTerminalExecutable() : _shell,
-            Arguments = GetTerminalArguments(command),
-            RedirectStandardOutput = _terminalOptions.RedirectStandardOutput,
-            UseShellExecute = _terminalOptions.UseShellExecute,
-            CreateNoWindow = _terminalOptions.CreateNoWindow
-        };
-    }
-    
-    private static string ParseArgs(IEnumerable<string> actions)
-    {
-        var argsBuilder = new StringBuilder();
-        
-        foreach (var action in actions)
-        {
-            argsBuilder.Append(action);
-            
-            if (action == actions.Last()) continue;
-            
-            argsBuilder.Append(" && ");
-        }
-
-        return argsBuilder.ToString();
-    }
-    private string GetTerminalExecutable()
-    {
-        return (Environment.OSVersion.Platform == PlatformID.Win32NT) ? "cmd.exe" : "bash";
-    }
-
-    private string[] GetScriptFromKey(string key)
-    {
-        if (!_actions.ContainsKey(key)) throw new Exception("Script not found.");
-        
         var script = _actions[key];
 
         return script;
     }
-    
-    private string GetTerminalArguments(string command, string arguments = "")
+
+    protected static string ParseArgs(IEnumerable<string> actions)
     {
-        return (Environment.OSVersion.Platform == PlatformID.Win32NT) 
-            ? "/c " + command + " " + arguments 
-            : "-c \"" + command + " " + arguments + "\"";
+        var actionsArray = actions.ToArray();
+        
+        var argsBuilder = new StringBuilder();
+
+        foreach (var action in actionsArray)
+        {
+            argsBuilder.Append(action);
+
+            if (action == actionsArray.Last())
+                continue;
+
+            argsBuilder.Append(" && ");
+        }
+
+        return argsBuilder.ToString();
     }
 }
