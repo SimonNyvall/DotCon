@@ -1,4 +1,4 @@
-# DotCon
+# DotCon [![.NET](https://github.com/SimonNyvall/DotCon/actions/workflows/dotnet.yml/badge.svg)](https://github.com/SimonNyvall/DotCon/actions/workflows/dotnet.yml)
 
 DotCon is a lightweight library that provides a simple and consistent interface for executing shell commands in various terminal environments. It follows the Factory Method design pattern to create terminal instances based on different shells (Bash, Cmd, PowerShell, Zsh).
 
