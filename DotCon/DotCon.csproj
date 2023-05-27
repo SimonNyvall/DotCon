@@ -5,10 +5,14 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <Title>DotCon. Access the terminal within C#.</Title>
-        <PackageIcon>terminal.png</PackageIcon>
         <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+        <PackageIcon>Images/terminal.png</PackageIcon>
     </PropertyGroup>
 
+    <ItemGroup>
+        <None Include="Images\terminal.png" Pack="true" PackagePath="Images" />
+    </ItemGroup>
+    
     <PropertyGroup>
         <PackageId>DotCon</PackageId>
         <Version>7.2.0</Version>
@@ -20,13 +24,6 @@
         <PackageProjectUrl>https://github.com/SimonNyvall/DotCon</PackageProjectUrl>
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
     </PropertyGroup>
-
-    <ItemGroup>
-      <None Update="Images\terminal.png">
-        <Pack>True</Pack>
-        <PackagePath></PackagePath>
-      </None>
-    </ItemGroup>
     
    
     
