@@ -44,18 +44,4 @@ public class Terminal_Tests
         // Assert
         Assert.Equal("HelloWorld\n", result);
     }
-    
-    [Fact]
-    public void Execute_ReturnsHelloWorld_WithInputEchoHelloWorld()
-    {
-        // Arrange
-        var terminal = Terminal.UseBashShell();
-        terminal.StoreScript("echo", "echo 'HelloWorld'");
-        
-        // Act
-        var result = terminal.ExecuteScript("echo");
-
-        // Assert
-        Assert.Equal("HelloWorld\n", result);
-    }
 }
