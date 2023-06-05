@@ -2,8 +2,9 @@ using DotCon.Models;
 
 namespace DotCon.Terminals;
 
-public class PowershellTerminal : Terminal
+public sealed class PowershellTerminal : Terminal
 {
+    protected override string FileExtension { get; } = ".ps1";
     public PowershellTerminal() : base(Shell.powershell) {}
 
     protected override string GetTerminalExecutable()
@@ -15,6 +16,7 @@ public class PowershellTerminal : Terminal
     {
         return $"-c \"{command}\"";
     }
+
 
     protected override string GetTerminalArguments(string command, string arguments)
     {
