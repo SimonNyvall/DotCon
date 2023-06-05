@@ -5,13 +5,17 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <Title>DotCon. Access the terminal within C#.</Title>
-        <PackageIcon>terminal.png</PackageIcon>
         <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+        <PackageIcon>Images/terminal.png</PackageIcon>
     </PropertyGroup>
 
+    <ItemGroup>
+      <Folder Include="Images\" />
+    </ItemGroup>
+    
     <PropertyGroup>
         <PackageId>DotCon</PackageId>
-        <Version>7.1.0</Version>
+        <Version>7.2.0</Version>
         <Authors>Simon Nyvall</Authors>
         <Description>A class library that provides access to the terminal and allows running bash and cmd scripts in C#.</Description>
         <RepositoryUrl>https://github.com/SimonNyvall/DotCon</RepositoryUrl>
@@ -20,13 +24,6 @@
         <PackageProjectUrl>https://github.com/SimonNyvall/DotCon</PackageProjectUrl>
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
     </PropertyGroup>
-
-    <ItemGroup>
-      <None Update="Images\terminal.png">
-        <Pack>True</Pack>
-        <PackagePath></PackagePath>
-      </None>
-    </ItemGroup>
     
    
     

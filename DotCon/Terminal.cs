@@ -5,8 +5,12 @@ using DotCon.Terminals;
 
 namespace DotCon;
 
-public abstract class Terminal : ScriptManager
+public abstract class Terminal : ITerminal
 {
+    protected abstract string GetTerminalExecutable();
+    protected abstract string GetTerminalArguments(string command);
+    protected abstract string FileExtension { get; }
+    
     private static TerminalOptions _terminalOptions = new();
     private Shell Shell { get; }
     
@@ -47,10 +51,7 @@ public abstract class Terminal : ScriptManager
         configureOptions(options);
         _terminalOptions = options;
     }
-    
-    protected abstract string GetTerminalExecutable();
-    protected abstract string GetTerminalArguments(string command);
-    
+
     protected abstract string GetTerminalArguments(string command, string arguments);
 
     private ProcessStartInfo GetProcessStartInfo(string command)
@@ -58,10 +59,11 @@ public abstract class Terminal : ScriptManager
         return new ProcessStartInfo
         {
             FileName = string.IsNullOrEmpty(Shell.ToString()) ? GetTerminalExecutable() : Shell.ToString(),
-            Arguments = GetTerminalArguments(command),
+            Arguments = File.Exists(command) ? command : GetTerminalArguments(command),
             RedirectStandardOutput = _terminalOptions.RedirectStandardOutput,
             UseShellExecute = _terminalOptions.UseShellExecute,
-            CreateNoWindow = _terminalOptions.CreateNoWindow
+            CreateNoWindow = _terminalOptions.CreateNoWindow,
+            WorkingDirectory = _terminalOptions.WorkingDirectory
         };
     }
 
@@ -77,49 +79,59 @@ public abstract class Terminal : ScriptManager
     /// <summary>
     /// Tries to execute a script action and captures the output or exception message.
     /// </summary>
-    /// <param name="action">The script action to execute.</param>
+    /// <param name="filePath">The script file to execute.</param>
     /// <param name="output">The output of the executed script action or the exception message if an error occurs.</param>
     /// <returns>True if the script action executed successfully; otherwise, false.</returns>
-    public bool TryExecuteScript(string action, out string output)
+    public bool TryExecuteScript(string filePath, out string output)
     {
-        try
-        {
-            output = ExecuteScript(action);
-            return true;
-        }
-        catch (Exception exception)
-        {
-            output = exception.Message;
-            return false;
-        }
+       if (!File.Exists(filePath)) throw new FileNotFoundException($"The file '{filePath}' does not exist.");
+
+       if (_terminalOptions.CheckForFileExtension) CheckFileExtension(filePath);
+
+       try
+       {
+           output = Run(filePath);
+           return true;
+       }
+       catch (Exception exception)
+       {
+           output = exception.Message;
+           return false;
+       }
     }
     
     /// <summary>
     /// Executes a script by retrieving the corresponding actions, parsing the arguments, and running the resulting command.
     /// </summary>
-    /// <param name="action">The script action or key representing the script to execute.</param>
+    /// <param name="filePath">The script file to execute.</param>
     /// <returns>The output of the executed script.</returns>
-    public string ExecuteScript(string action)
+    public string ExecuteScript(string filePath)
     {
-        var actions = GetScriptFromKey(action);
-
-        var command = ParseArgs(actions);
-
-        return Run(command);
+        if (!File.Exists(filePath)) throw new FileNotFoundException($"The file '{filePath}' does not exist.");
+        
+        if (_terminalOptions.CheckForFileExtension) CheckFileExtension(filePath);
+        
+        return Run(filePath);
     }
 
     /// <summary>
     /// Executes a script asynchronously by retrieving the corresponding actions, parsing the arguments, and running the resulting command.
     /// </summary>
-    /// <param name="action">The script action or key representing the script to execute.</param>
+    /// <param name="filePath">The script file to execute.</param>
     /// <returns>A task representing the asynchronous operation, returning the output of the executed script.</returns>
-    public async Task<string> ExecuteScriptAsync(string action)
+    public async Task<string> ExecuteScriptAsync(string filePath)
     {
-       var actions = GetScriptFromKey(action);
-       
-       var command = ParseArgs(actions);
-       
-       return await RunAsync(command);
+        if (!File.Exists(filePath)) throw new FileNotFoundException($"The file '{filePath}' does not exist.");
+        
+        if (_terminalOptions.CheckForFileExtension) CheckFileExtension(filePath);
+        
+        return await RunAsync(filePath);
+    }
+    
+    private void CheckFileExtension(string filePath)
+    {
+        var extension = Path.GetExtension(filePath);
+        if (extension != FileExtension) throw new ArgumentException($"The file extension '{extension}' is not supported.");
     }
 
     /// <summary>
@@ -213,33 +225,5 @@ public abstract class Terminal : ScriptManager
         var output = outputBuilder.ToString();
 
         return output;
-    }
-    protected string[] GetScriptFromKey(string key)
-    {
-        if (!_actions.ContainsKey(key))
-            throw new Exception("Script not found.");
-
-        var script = _actions[key];
-
-        return script;
-    }
-
-    protected static string ParseArgs(IEnumerable<string> actions)
-    {
-        var actionsArray = actions.ToArray();
-        
-        var argsBuilder = new StringBuilder();
-
-        foreach (var action in actionsArray)
-        {
-            argsBuilder.Append(action);
-
-            if (action == actionsArray.Last())
-                continue;
-
-            argsBuilder.Append(" && ");
-        }
-
-        return argsBuilder.ToString();
     }
 }

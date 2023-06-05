@@ -2,10 +2,11 @@ using DotCon.Models;
 
 namespace DotCon.Terminals;
 
-public class BashTerminal : Terminal
+public sealed class BashTerminal : Terminal
 {
+    protected override string FileExtension { get; } = ".sh";
     public BashTerminal() : base(Shell.bash) {}
-
+    
     protected override string GetTerminalExecutable()
     {
         return Shell.bash.ToString();

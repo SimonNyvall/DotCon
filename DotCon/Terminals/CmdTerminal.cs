@@ -2,8 +2,9 @@ using DotCon.Models;
 
 namespace DotCon.Terminals;
 
-public class CmdTerminal : Terminal
+public sealed class CmdTerminal : Terminal
 {
+    protected override string FileExtension { get; } = ".bat";
     public CmdTerminal() : base(Shell.cmd) {}
 
     protected override string GetTerminalExecutable()
@@ -15,6 +16,7 @@ public class CmdTerminal : Terminal
     {
         return "/c \"" + command + "\" ";
     }
+
 
     protected override string GetTerminalArguments(string command, string arguments)
     {

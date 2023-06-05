@@ -2,8 +2,9 @@ using DotCon.Models;
 
 namespace DotCon.Terminals;
 
-public class ZshTerminal : Terminal
+public sealed class ZshTerminal : Terminal
 {
+    protected override string FileExtension { get; } = ".zsh";
     public ZshTerminal() : base(Shell.zsh) {}
 
     protected override string GetTerminalExecutable()
@@ -15,6 +16,7 @@ public class ZshTerminal : Terminal
     {
         return $"-c \"{command}\"";
     }
+
 
     protected override string GetTerminalArguments(string command, string arguments)
     {
