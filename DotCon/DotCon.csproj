@@ -10,7 +10,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <None Include="Images\terminal.png" Pack="true" PackagePath="Images" />
+      <Folder Include="Images\" />
     </ItemGroup>
     
     <PropertyGroup>
