@@ -32,7 +32,7 @@ You can add the DotCon library to your .NET project using the following methods:
 
 #### Package Manager Console
 ``` bash
-dotnet add package DotCon --version 7.3.0
+dotnet add package DotCon --version 8.2.0
 ```
 
 Or download/ clone the project and run the RunDocker.sh file, which will start up a conatiner with the classlib added to a console application.
