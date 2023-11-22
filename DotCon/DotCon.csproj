@@ -17,7 +17,7 @@
     
     <PropertyGroup>
         <PackageId>DotCon</PackageId>
-        <Version>8.2.0</Version>
+        <Version>8.2.1</Version>
         <Authors>Simon Nyvall</Authors>
         <Description>A class library that provides access to the terminal and allows running bash and cmd scripts in C#.</Description>
         <RepositoryUrl>https://github.com/SimonNyvall/DotCon</RepositoryUrl>
